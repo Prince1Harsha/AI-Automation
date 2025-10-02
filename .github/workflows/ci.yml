@@ -106,15 +106,12 @@ jobs:
       - name: Ensure report directory exists
         run: mkdir -p playwright-report
 
-      - name: Upload Pages artifact (report)
+      - name: Deploy to GitHub Pages (push gh-pages)
         if: always()
-        uses: actions/upload-pages-artifact@v1
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: playwright-report
-
-      - name: Deploy to GitHub Pages
-        if: always()
-        uses: actions/deploy-pages@v1
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./playwright-report
 
       - name: Build report URL
         id: build-url
