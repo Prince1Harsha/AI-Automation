@@ -1,5 +1,5 @@
 import { test, expect, request } from "@playwright/test";
-import { GitHubApi } from "../../pages/api/GitHubApi";
+import { GitHubApi } from "../../pages/GitHubApi";
 
 test("Demo API test: GitHub API", async () => {
   const req = await request.newContext();
