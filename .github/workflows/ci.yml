@@ -46,29 +46,62 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
+
+      - name: Remove any existing report files
+        run: |
+          rm -rf playwright-report || true
+          rm -f playwright-report/results.json || true
+
+      - name: Ensure report directory exists
+        run: mkdir -p playwright-report
+
       - name: Install dependencies
         run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
-        run: npx playwright test
+      - name: Run Playwright tests (HTML)
+        id: run-tests
+        run: |
+          # run tests once to generate HTML report (from config)
+          npx playwright test || true
 
-      - name: Generate Playwright Test Summary
+      - name: Run Playwright tests (JSON output)
         if: always()
         run: |
+          # produce a json results file for parsing (this reruns tests)
+          mkdir -p playwright-report
+          npx playwright test --reporter=json > playwright-report/results.json || true
+
+      - name: "Debug: show generated report files"
+        if: always()
+        run: |
+          echo "Listing playwright-report folder:"
+          ls -la playwright-report || true
           if [ -f playwright-report/results.json ]; then
-            jq '
-              {
-                project: (.suites[0].title // "N/A"),
-                tests: [
-                  .suites[]?.specs[]?.tests[]? | {name: .title, status: .outcome}
-                ]
-              }
-            ' playwright-report/results.json > test-summary.json
+            echo "results.json size (bytes): $(stat -c%s playwright-report/results.json || true)"
+            echo "Head of results.json (first 2000 bytes):"
+            head -c 2000 playwright-report/results.json || true
           else
-            echo '{"project":"N/A","tests":[]}' > test-summary.json
+            echo "results.json not found"
+          fi
+
+      - name: Generate Playwright Test Summary (Node)
+        if: always()
+        run: |
+          # Use Node scripts to normalize encoding and generate test-summary.json (avoids jq on Windows)
+          if [ -f playwright-report/results.json ]; then
+            echo "Normalizing encoding (if required) using Node"
+            node tools/convert-results-encoding.js || (echo 'Conversion failed' && exit 1)
+          else
+            echo "results.json not found; skipping conversion"
+          fi
+          if [ -f playwright-report/results.json ] && [ -s playwright-report/results.json ]; then
+            echo "Generating test-summary.json using Node"
+            node tools/generate-test-summary.js || (echo 'Summary generation failed' && exit 1)
+          else
+            echo '{"project":"N/A","total":0,"passed":0,"failed":0,"skipped":0,"tests":[]}' > test-summary.json
           fi
 
       - name: Upload Playwright Report
@@ -85,42 +118,41 @@ jobs:
           name: traces-${{ matrix.node-version }}-${{ matrix.os }}
           path: test-results/
 
-      - name: Slack Notification - Summary
+      - name: Ensure report directory exists
+        run: mkdir -p playwright-report
+
+      - name: Upload Pages artifact (report)
+        if: always()
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: playwright-report
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        uses: actions/deploy-pages@v1
+
+      - name: Build report URL
+        id: build-url
+        run: |
+          OWNER=${{ github.repository_owner }}
+          REPO=${{ github.event.repository.name }}
+          # report served at https://OWNER.github.io/REPO/
+          echo "report_url=https://$OWNER.github.io/$REPO/" >> $GITHUB_OUTPUT
+
+      - name: Slack Notification - Summary with report link
         if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
+          STATUS="${{ steps.run-tests.outcome }}"
+          REPORT_URL="${{ steps.build-url.outputs.report_url }}"
           if [ -s test-summary.json ]; then
             SUMMARY=$(jq -r '
-              "Playwright Project: \(.project)\n" +
-              "Tests:\n" +
-              ([.tests[] | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
-              "✅ Passed: \([.tests[] | select(.status=="expected")] | length)\n" +
-              "❌ Failed: \([.tests[] | select(.status=="unexpected")] | length)\n" +
-              "⏭️ Skipped: \([.tests[] | select(.status=="skipped")] | length)\n"
+              "Playwright Project: \(.project)\nTotal: \(.total)\n\n✅ Passed: \(.passed)\n❌ Failed: \(.failed)\n⏭️ Skipped: \(.skipped)\n\nTests:\n" +
+              ([.tests[] | "- \(.name): \(.status)"] | join("\n"))
             ' test-summary.json)
           else
             SUMMARY="No test results found."
           fi
-          curl -X POST -H 'Content-type: application/json' --data "{\"blocks\": [{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Playwright Test Summary*\n$SUMMARY\"}}]}" $SLACK_WEBHOOK_URL
-
-      - name: Slack Notification - Success
-        if: success()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Playwright tests passed with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
-
-      - name: Slack Notification - Failure
-        if: failure()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Playwright tests failed with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
-
-      - name: Slack Notification - Cancelled
-        if: cancelled()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"⚠️ Playwright tests cancelled with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
+          PAYLOAD=$(jq -nc --arg status "$STATUS" --arg url "$REPORT_URL" --arg summary "$SUMMARY" '{blocks:[{type:"section",text:{type:"mrkdwn",text: "*Playwright Test Summary*\nStatus: *"+$status+"*\n\n"+$summary+"\n\nReport: "+$url}}]}')
+          curl -s -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
