@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MobileHomePage } from "./pages/MobileHomePage";
+import { MobileHomePage } from "../../pages/mobile/MobileHomePage";
 
 test("Demo Mobile test: Playwright homepage on iPhone 12", async ({ page }) => {
   const mobileHomePage = new MobileHomePage(page);
