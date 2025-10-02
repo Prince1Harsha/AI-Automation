@@ -28,9 +28,8 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        node-version: [20]
-        browser: [chromium]
         os: [ubuntu-latest]
+        node-version: [20]
       fail-fast: false
     defaults:
       run:
@@ -39,12 +38,10 @@ jobs:
     continue-on-error: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
+        uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
@@ -55,44 +52,8 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests on ${{ matrix.browser }} (${{ matrix.os }})
+      - name: Run Playwright tests
         run: npx playwright test
-
-      - name: Upload Playwright HTML Report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: playwright-report-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
-          path: playwright-report/
-          retention-days: 7
-
-      - name: Upload Trace Files
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: traces-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
-          path: test-results/
-          retention-days: 7
-
-      - name: Upload logs
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: logs-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
-          path: logs/
-          retention-days: 7
-
-      - name: Clean up
-        if: always()
-        run: rm -rf node_modules
-
-      - name: Set up cache for node_modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Generate Playwright Test Summary
         if: always()
@@ -100,14 +61,31 @@ jobs:
           if [ -f playwright-report/results.json ]; then
             jq '
               {
+                project: (.suites[0].title // "N/A"),
                 tests: [
                   .suites[]?.specs[]?.tests[]? | {name: .title, status: .outcome}
                 ]
               }
             ' playwright-report/results.json > test-summary.json
           else
-            echo '{"tests":[]}' > test-summary.json
+            echo '{"project":"N/A","tests":[]}' > test-summary.json
           fi
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-${{ matrix.node-version }}-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload Trace Files
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: traces-${{ matrix.node-version }}-${{ matrix.os }}
+          path: test-results/
+          retention-days: 7
 
       - name: Slack Notification - Summary
         if: always()
