@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload Playwright HTML Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
           path: playwright-report/
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload Trace Files
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: traces-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
           path: test-results/
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
           path: logs/
