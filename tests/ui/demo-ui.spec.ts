@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { HomePage } from "./pages/HomePage";
 
 test("Demo UI test: Playwright homepage", async ({ page }) => {
-  await page.goto("https://playwright.dev");
+  const homePage = new HomePage(page);
+  await homePage.goto();
   await expect(page).toHaveTitle(/Playwright/);
-  await expect(page.locator("text=Get Started")).toBeVisible();
+  expect(await homePage.isGetStartedVisible()).toBeTruthy();
 });
