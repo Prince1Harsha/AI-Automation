@@ -97,10 +97,14 @@ jobs:
       - name: Generate Playwright Test Summary
         if: always()
         run: |
-          jq '
-            .suites[] | 
-            {project: .title, tests: [.specs[].tests[] | {name: .title, status: .outcome}]} 
-          ' playwright-report/results.json > test-summary.json
+          if [ -f playwright-report/results.json ]; then
+            jq '
+              .suites[] | 
+              {project: .title, tests: [.specs[].tests[] | {name: .title, status: .outcome}]} 
+            ' playwright-report/results.json > test-summary.json
+          else
+            echo '{}' > test-summary.json
+          fi
 
       - name: Slack Notification - Summary
         if: always()
