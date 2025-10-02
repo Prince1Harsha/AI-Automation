@@ -19,6 +19,7 @@ on:
 env:
   NODE_ENV: test
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
+  TS_NODE_PROJECT: playwright.config.ts
 
 jobs:
   test:
@@ -96,6 +97,7 @@ jobs:
       - name: Generate Playwright Test Summary
         if: always()
         run: |
+          mkdir -p playwright-report
           npx playwright test --reporter=json
           jq '
             .suites[] | 

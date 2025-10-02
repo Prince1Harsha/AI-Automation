@@ -9,6 +9,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.42.0"
+    "@playwright/test": "^1.55.1",
+    "ts-node": "^10.9.2"
   }
 }

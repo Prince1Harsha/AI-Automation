@@ -26,4 +26,8 @@ export default defineConfig({
       testMatch: /mobile\/.*/,
     },
   ],
+  reporter: [
+    ["json", { outputFile: "playwright-report/results.json" }],
+    ["html", { outputFolder: "playwright-report", open: "never" }],
+  ],
 });
