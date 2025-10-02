@@ -99,11 +99,14 @@ jobs:
         run: |
           if [ -f playwright-report/results.json ]; then
             jq '
-              .suites[] | 
-              {project: .title, tests: [.specs[].tests[] | {name: .title, status: .outcome}]} 
+              {
+                tests: [
+                  .suites[].specs[].tests[] | {name: .title, status: .outcome}
+                ]
+              }
             ' playwright-report/results.json > test-summary.json
           else
-            echo '{}' > test-summary.json
+            echo '{"tests":[]}' > test-summary.json
           fi
 
       - name: Slack Notification - Summary
@@ -113,13 +116,11 @@ jobs:
         run: |
           if [ -s test-summary.json ]; then
             SUMMARY=$(jq -r '
-              . as $root |
-              "Playwright Project: \(.project // "N/A")\n" +
               "Tests:\n" +
-              ([.tests[]? | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
-              "✅ Passed: \([.tests[]? | select(.status=="expected")] | length)\n" +
-              "❌ Failed: \([.tests[]? | select(.status=="unexpected")] | length)\n" +
-              "⏭️ Skipped: \([.tests[]? | select(.status=="skipped")] | length)\n"
+              ([.tests[] | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
+              "✅ Passed: \([.tests[] | select(.status=="expected")] | length)\n" +
+              "❌ Failed: \([.tests[] | select(.status=="unexpected")] | length)\n" +
+              "⏭️ Skipped: \([.tests[] | select(.status=="skipped")] | length)\n"
             ' test-summary.json)
           else
             SUMMARY="No test results found."
