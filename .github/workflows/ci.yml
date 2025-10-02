@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload Playwright HTML Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: playwright-report-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
           path: playwright-report/
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload Trace Files
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: traces-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
           path: test-results/
@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: logs-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
           path: logs/
@@ -100,13 +100,14 @@ jobs:
           if [ -f playwright-report/results.json ]; then
             jq '
               {
+                project: (.suites[0].title // "N/A"),
                 tests: [
-                  .suites[].specs[].tests[] | {name: .title, status: .outcome}
+                  .suites[]?.specs[]?.tests[]? | {name: .title, status: .outcome}
                 ]
               }
             ' playwright-report/results.json > test-summary.json
           else
-            echo '{"tests":[]}' > test-summary.json
+            echo '{"project":"N/A","tests":[]}' > test-summary.json
           fi
 
       - name: Slack Notification - Summary
@@ -116,6 +117,7 @@ jobs:
         run: |
           if [ -s test-summary.json ]; then
             SUMMARY=$(jq -r '
+              "Playwright Project: \(.project)\n" +
               "Tests:\n" +
               ([.tests[] | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
               "✅ Passed: \([.tests[] | select(.status=="expected")] | length)\n" +
