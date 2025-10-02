@@ -103,20 +103,6 @@ jobs:
             echo '{"project":"N/A","total":0,"passed":0,"failed":0,"skipped":0,"tests":[]}' > test-summary.json
           fi
 
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@master
-        with:
-          name: playwright-report-${{ matrix.node-version }}-${{ matrix.os }}
-          path: playwright-report/
-
-      - name: Upload Trace Files
-        if: always()
-        uses: actions/upload-artifact@master
-        with:
-          name: traces-${{ matrix.node-version }}-${{ matrix.os }}
-          path: test-results/
-
       - name: Ensure report directory exists
         run: mkdir -p playwright-report
 
