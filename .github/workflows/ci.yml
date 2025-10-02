@@ -3,21 +3,116 @@ name: Playwright Tests
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "**/README.md"
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      testType:
+        description: "Type of tests to run (ui, api, mobile, all)"
+        required: false
+        default: "all"
+
+env:
+  NODE_ENV: test
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: false
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Playwright Automation
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        browser: [chromium, firefox, webkit]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+    concurrency:
+      group: playwright-ci-${{ github.ref }}
+      cancel-in-progress: true
+    continue-on-error: false
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: "20"
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        run: npx playwright test
+
+      - name: Run Playwright tests on ${{ matrix.browser }} (${{ matrix.os }})
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      - name: Upload Playwright HTML Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload Trace Files
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: traces-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
+          path: test-results/
+          retention-days: 7
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.browser }}-${{ matrix.node-version }}-${{ matrix.os }}
+          path: logs/
+          retention-days: 7
+
+      - name: Clean up
+        if: always()
+        run: rm -rf node_modules
+
+      - name: Set up cache for node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Slack Notification - Success
+        if: success()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Playwright tests passed on *${{ matrix.browser }}* with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
+
+      - name: Slack Notification - Failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Playwright tests failed on *${{ matrix.browser }}* with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
+
+      - name: Slack Notification - Cancelled
+        if: cancelled()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"⚠️ Playwright tests cancelled on *${{ matrix.browser }}* with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
