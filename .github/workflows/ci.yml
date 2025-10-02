@@ -100,14 +100,13 @@ jobs:
           if [ -f playwright-report/results.json ]; then
             jq '
               {
-                project: (.suites[0].title // "N/A"),
                 tests: [
                   .suites[]?.specs[]?.tests[]? | {name: .title, status: .outcome}
                 ]
               }
             ' playwright-report/results.json > test-summary.json
           else
-            echo '{"project":"N/A","tests":[]}' > test-summary.json
+            echo '{"tests":[]}' > test-summary.json
           fi
 
       - name: Slack Notification - Summary
