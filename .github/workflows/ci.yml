@@ -111,15 +111,19 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          SUMMARY=$(jq -r '
-            . as $root |
-            "Playwright Project: \(.project)\n" +
-            "Tests:\n" +
-            ([.tests[] | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
-            "✅ Passed: \([.tests[] | select(.status=="expected")] | length)\n" +
-            "❌ Failed: \([.tests[] | select(.status=="unexpected")] | length)\n" +
-            "⏭️ Skipped: \([.tests[] | select(.status=="skipped")] | length)\n"
-          ' test-summary.json)
+          if [ -s test-summary.json ]; then
+            SUMMARY=$(jq -r '
+              . as $root |
+              "Playwright Project: \(.project // "N/A")\n" +
+              "Tests:\n" +
+              ([.tests[]? | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
+              "✅ Passed: \([.tests[]? | select(.status=="expected")] | length)\n" +
+              "❌ Failed: \([.tests[]? | select(.status=="unexpected")] | length)\n" +
+              "⏭️ Skipped: \([.tests[]? | select(.status=="skipped")] | length)\n"
+            ' test-summary.json)
+          else
+            SUMMARY="No test results found."
+          fi
           curl -X POST -H 'Content-type: application/json' --data "{\"blocks\": [{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Playwright Test Summary*\n$SUMMARY\"}}]}" $SLACK_WEBHOOK_URL
 
       - name: Slack Notification - Success
