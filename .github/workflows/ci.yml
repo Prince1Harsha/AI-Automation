@@ -73,19 +73,17 @@ jobs:
 
       - name: Upload Playwright Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@master
         with:
           name: playwright-report-${{ matrix.node-version }}-${{ matrix.os }}
           path: playwright-report/
-          retention-days: 7
 
       - name: Upload Trace Files
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@master
         with:
           name: traces-${{ matrix.node-version }}-${{ matrix.os }}
           path: test-results/
-          retention-days: 7
 
       - name: Slack Notification - Summary
         if: always()
@@ -111,18 +109,18 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Playwright tests passed on *${{ matrix.browser }}* with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Playwright tests passed with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
 
       - name: Slack Notification - Failure
         if: failure()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Playwright tests failed on *${{ matrix.browser }}* with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Playwright tests failed with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
 
       - name: Slack Notification - Cancelled
         if: cancelled()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"⚠️ Playwright tests cancelled on *${{ matrix.browser }}* with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"⚠️ Playwright tests cancelled with Node.js *${{ matrix.node-version }}* on *${{ matrix.os }}*"}' $SLACK_WEBHOOK_URL
