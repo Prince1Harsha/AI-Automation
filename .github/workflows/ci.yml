@@ -93,6 +93,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Generate Playwright Test Summary
+        if: always()
+        run: |
+          npx playwright test --reporter=json
+          jq '
+            .suites[] | 
+            {project: .title, tests: [.specs[].tests[] | {name: .title, status: .outcome}]} 
+          ' playwright-report/results.json > test-summary.json
+
+      - name: Slack Notification - Summary
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          SUMMARY=$(jq -r '
+            . as $root |
+            "Playwright Project: \(.project)\n" +
+            "Tests:\n" +
+            ([.tests[] | "- \(.name): \(.status)"] | join("\n")) + "\n\n" +
+            "✅ Passed: \([.tests[] | select(.status=="expected")] | length)\n" +
+            "❌ Failed: \([.tests[] | select(.status=="unexpected")] | length)\n" +
+            "⏭️ Skipped: \([.tests[] | select(.status=="skipped")] | length)\n"
+          ' test-summary.json)
+          curl -X POST -H 'Content-type: application/json' --data "{\"blocks\": [{\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Playwright Test Summary*\n$SUMMARY\"}}]}" $SLACK_WEBHOOK_URL
+
       - name: Slack Notification - Success
         if: success()
         env:
