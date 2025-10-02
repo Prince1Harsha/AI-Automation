@@ -97,8 +97,6 @@ jobs:
       - name: Generate Playwright Test Summary
         if: always()
         run: |
-          mkdir -p playwright-report
-          npx playwright test --reporter=json
           jq '
             .suites[] | 
             {project: .title, tests: [.specs[].tests[] | {name: .title, status: .outcome}]} 
