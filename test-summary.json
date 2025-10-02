@@ -1,0 +1,18 @@
+{
+  "project": "ui\\demo-ui.spec.ts",
+  "total": 3,
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "tests": [
+    {
+      "status": "passed"
+    },
+    {
+      "status": "passed"
+    },
+    {
+      "status": "passed"
+    }
+  ]
+}

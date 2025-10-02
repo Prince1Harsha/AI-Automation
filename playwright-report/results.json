@@ -1,0 +1,249 @@
+{
+  "config": {
+    "configFile": "C:\\AI\\AI-Automation\\playwright.config.ts",
+    "rootDir": "C:/AI/AI-Automation/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/AI/AI-Automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "UI Chrome",
+        "name": "UI Chrome",
+        "testDir": "C:/AI/AI-Automation/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/ui\\/.*/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/AI/AI-Automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "API",
+        "name": "API",
+        "testDir": "C:/AI/AI-Automation/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/api\\/.*/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/AI/AI-Automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile",
+        "name": "Mobile",
+        "testDir": "C:/AI/AI-Automation/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/mobile\\/.*/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "ui\\demo-ui.spec.ts",
+      "file": "ui/demo-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Demo UI test: Playwright homepage",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "UI Chrome",
+              "projectName": "UI Chrome",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8713,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-02T17:11:53.573Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\AI\\AI-Automation\\test-results\\ui-demo-ui-Demo-UI-test-Playwright-homepage-UI-Chrome\\test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\AI\\AI-Automation\\test-results\\ui-demo-ui-Demo-UI-test-Playwright-homepage-UI-Chrome\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "43bf5adfaaddfb7fb598-cc00258374e8feedd9f4",
+          "file": "ui/demo-ui.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "api\\demo-api.spec.ts",
+      "file": "api/demo-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Demo API test: GitHub API",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "API",
+              "projectName": "API",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1702,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-02T17:11:53.643Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\AI\\AI-Automation\\test-results\\api-demo-api-Demo-API-test-GitHub-API-API\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ee84da4d8774cf5fe87c-134c76b9813b17c2a32b",
+          "file": "api/demo-api.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "mobile\\demo-mobile.spec.ts",
+      "file": "mobile/demo-mobile.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Demo Mobile test: Playwright homepage on iPhone 12",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile",
+              "projectName": "Mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 4559,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-02T17:11:59.832Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\AI\\AI-Automation\\test-results\\mobile-demo-mobile-Demo-Mo-b15c2-right-homepage-on-iPhone-12-Mobile\\test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\AI\\AI-Automation\\test-results\\mobile-demo-mobile-Demo-Mo-b15c2-right-homepage-on-iPhone-12-Mobile\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1d05d7be8943a9f02f6-44c995b0a90b371c4fcc",
+          "file": "mobile/demo-mobile.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-02T17:11:51.322Z",
+    "duration": 14262.734,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

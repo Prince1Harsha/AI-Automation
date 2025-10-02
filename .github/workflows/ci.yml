@@ -46,7 +46,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
-
       - name: Remove any existing report files
         run: |
           rm -rf playwright-report || true
